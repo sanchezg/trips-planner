@@ -27,6 +27,9 @@ async def google_callback(code: str, db: Session = Depends(get_db)) -> RedirectR
         name=payload.get("name"),
         avatar_url=payload.get("picture"),
         google_sub=payload["sub"],
+        google_access_token=payload.get("access_token"),
+        google_refresh_token=payload.get("refresh_token"),
+        google_token_expires_at=payload.get("token_expires_at"),
     )
     token = create_session_token({"user_id": user.id, "email": user.email})
     response = RedirectResponse(settings.app_url + "/dashboard")

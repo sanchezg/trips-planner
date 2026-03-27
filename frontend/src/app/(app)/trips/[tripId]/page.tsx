@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { SyncTripButton } from '@/components/trips/sync-trip-button';
 import { TripEventsPlanner } from '@/components/trips/trip-events-planner';
 import { AppShell } from '@/components/shared/app-shell';
 import { Button } from '@/components/ui/button';
@@ -30,10 +31,11 @@ export default async function TripDetailsPage({ params }: { params: Promise<{ tr
           </CardHeader>
           <CardContent className='space-y-4'>
             <p className='text-sm leading-6 text-muted-foreground'>{trip?.description ?? 'No description available.'}</p>
-            <div className='flex flex-wrap gap-3'>
+            <div className='flex flex-wrap items-start gap-3'>
               <Link href={'/trips/' + tripId + '/itinerary'}><Button variant='outline'>Itinerary</Button></Link>
               <Link href={'/trips/' + tripId + '/expenses'}><Button variant='outline'>Expenses</Button></Link>
               <Link href={'/trips/' + tripId + '/settings'}><Button variant='outline'>Settings</Button></Link>
+              <SyncTripButton tripId={tripId} />
             </div>
           </CardContent>
         </Card>
