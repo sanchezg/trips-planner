@@ -1,7 +1,9 @@
 import secrets
 from datetime import datetime, timedelta, timezone
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+
 from app.db.models.invitation import Invitation
 from app.db.models.trip import Trip
 from app.db.models.user import User

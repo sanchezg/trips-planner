@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+
 from app.db.models.destination import Destination
 from app.db.models.trip import Trip
 from app.db.models.user import User

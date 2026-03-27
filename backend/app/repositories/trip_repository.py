@@ -17,3 +17,12 @@ def create_trip(db: Session, trip: Trip) -> Trip:
     db.commit()
     db.refresh(trip)
     return trip
+
+
+def update_trip_settings(db: Session, trip: Trip, *, event_categories: list[str], calendar_auto_sync: bool) -> Trip:
+    trip.event_categories = event_categories
+    trip.calendar_auto_sync = calendar_auto_sync
+    db.add(trip)
+    db.commit()
+    db.refresh(trip)
+    return trip

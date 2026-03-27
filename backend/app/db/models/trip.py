@@ -1,8 +1,10 @@
 import uuid
 from datetime import date, datetime
-from sqlalchemy import Date, DateTime, ForeignKey, String, Text
+from sqlalchemy import Boolean, Date, DateTime, ForeignKey, JSON, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
+
+DEFAULT_EVENT_CATEGORIES = ["transit", "travel", "stay", "entertainment", "meal"]
 
 
 class Trip(Base):
@@ -14,6 +16,8 @@ class Trip(Base):
     starts_at: Mapped[date | None] = mapped_column(Date, nullable=True)
     ends_at: Mapped[date | None] = mapped_column(Date, nullable=True)
     visibility: Mapped[str] = mapped_column(String, default="private")
+    event_categories: Mapped[list[str]] = mapped_column(JSON, default=lambda: DEFAULT_EVENT_CATEGORIES.copy())
+    calendar_auto_sync: Mapped[bool] = mapped_column(Boolean, default=False)
     owner_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)

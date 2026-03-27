@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+
 from app.services.google_calendar.service import export_trip_events
 
 router = APIRouter()

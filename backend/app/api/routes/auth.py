@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Response
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
+
 from app.core.config import settings
 from app.core.security import create_session_token
 from app.dependencies.auth import get_current_user
