@@ -1,0 +1,43 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+}
+
+:root {
+  --background: #f6f1e7;
+  --foreground: #1e1c17;
+  --card: #ffffff;
+  --card-foreground: #1e1c17;
+  --primary: #1f6f59;
+  --primary-foreground: #f7f5ee;
+  --muted: #efe8dc;
+  --muted-foreground: #6f6659;
+  --border: rgba(69, 58, 38, 0.14);
+  --input: #ffffff;
+  --accent: #dcebe3;
+  --accent-foreground: #184b3d;
+}
+
+@layer base {
+  * { @apply border-border; }
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Avenir Next", "Segoe UI", sans-serif;
+  }
+  h1, h2, h3, h4 {
+    font-family: "Iowan Old Style", "Palatino Linotype", serif;
+  }
+}
