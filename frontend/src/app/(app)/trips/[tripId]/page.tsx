@@ -20,6 +20,10 @@ export default async function TripDetailsPage({ params }: { params: Promise<{ tr
       description='Plan the trip day by day with a compact calendar, an itinerary list, and full event actions powered by the backend events module.'
     >
       <div className='space-y-6'>
+        <div>
+          <Link href='/dashboard'><Button variant='ghost'>Back to dashboard</Button></Link>
+        </div>
+
         <Card>
           <CardHeader>
             <CardTitle>{trip?.name ?? 'Unknown trip'}</CardTitle>
