@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.core.security import create_session_token
+from app.core.security import create_oauth_state, create_session_token, validate_oauth_state
 from app.dependencies.auth import get_current_user
 from app.dependencies.db import get_db
 from app.repositories.user_repository import get_or_create_google_user
@@ -15,11 +15,30 @@ router = APIRouter()
 
 @router.get("/google/login")
 async def google_login() -> RedirectResponse:
-    return RedirectResponse(build_google_login_url())
+    state, cookie_value = create_oauth_state()
+    response = RedirectResponse(build_google_login_url(state))
+    response.set_cookie(
+        settings.oauth_state_cookie_name,
+        cookie_value,
+        httponly=True,
+        secure=settings.session_cookie_secure,
+        samesite="lax",
+        max_age=settings.oauth_state_max_age_seconds,
+        domain=settings.session_cookie_domain,
+    )
+    return response
 
 
 @router.get("/google/callback")
-async def google_callback(code: str, db: Session = Depends(get_db)) -> RedirectResponse:
+async def google_callback(
+    code: str,
+    state: str | None = None,
+    oauth_state_cookie: str | None = Cookie(default=None, alias=settings.oauth_state_cookie_name),
+    db: Session = Depends(get_db),
+) -> RedirectResponse:
+    if not validate_oauth_state(oauth_state_cookie, state):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid OAuth state")
+
     payload = await exchange_code_for_user(code)
     user = get_or_create_google_user(
         db,
@@ -32,8 +51,22 @@ async def google_callback(code: str, db: Session = Depends(get_db)) -> RedirectR
         google_token_expires_at=payload.get("token_expires_at"),
     )
     token = create_session_token({"user_id": user.id, "email": user.email})
-    response = RedirectResponse(settings.app_url + "/dashboard")
-    response.set_cookie("trip_session", token, httponly=True, secure=False, samesite="lax")
+    response = RedirectResponse(settings.frontend_origin + "/dashboard")
+    response.set_cookie(
+        settings.session_cookie_name,
+        token,
+        httponly=True,
+        secure=settings.session_cookie_secure,
+        samesite=settings.session_cookie_samesite,
+        max_age=settings.session_max_age_seconds,
+        domain=settings.session_cookie_domain,
+    )
+    response.delete_cookie(
+        settings.oauth_state_cookie_name,
+        domain=settings.session_cookie_domain,
+        secure=settings.session_cookie_secure,
+        samesite="lax",
+    )
     return response
 
 
@@ -45,5 +78,10 @@ def me(current_user=Depends(get_current_user)):
 @router.post("/logout")
 def logout() -> Response:
     response = Response(status_code=204)
-    response.delete_cookie("trip_session")
+    response.delete_cookie(
+        settings.session_cookie_name,
+        domain=settings.session_cookie_domain,
+        secure=settings.session_cookie_secure,
+        samesite=settings.session_cookie_samesite,
+    )
     return response

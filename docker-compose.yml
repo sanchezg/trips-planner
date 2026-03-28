@@ -31,6 +31,13 @@ services:
       API_BASE_URL: http://localhost:8000
       DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/trips_planner
       SESSION_SECRET: change-me
+      SESSION_COOKIE_NAME: trip_session
+      SESSION_COOKIE_DOMAIN:
+      SESSION_COOKIE_SECURE: "false"
+      SESSION_COOKIE_SAMESITE: lax
+      SESSION_MAX_AGE_SECONDS: 604800
+      OAUTH_STATE_COOKIE_NAME: trip_oauth_state
+      OAUTH_STATE_MAX_AGE_SECONDS: 600
       PYTHONPATH: /app
       WATCHFILES_FORCE_POLLING: "true"
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}

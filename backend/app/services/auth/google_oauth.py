@@ -7,7 +7,8 @@ from app.core.config import settings
 GOOGLE_CALENDAR_SCOPE = "https://www.googleapis.com/auth/calendar"
 
 
-def build_google_login_url() -> str:
+
+def build_google_login_url(state: str) -> str:
     params = {
         "client_id": settings.google_client_id,
         "redirect_uri": settings.google_oauth_redirect_uri,
@@ -15,6 +16,7 @@ def build_google_login_url() -> str:
         "scope": f"openid email profile {GOOGLE_CALENDAR_SCOPE}",
         "access_type": "offline",
         "prompt": "consent",
+        "state": state,
     }
     return "https://accounts.google.com/o/oauth2/v2/auth?" + urlencode(params)
 

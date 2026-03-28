@@ -6,9 +6,9 @@ from app.core.config import settings
 app = FastAPI(title="Trips Planner API", version="0.1.0")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.app_url],
+    allow_origins=[settings.frontend_origin],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
