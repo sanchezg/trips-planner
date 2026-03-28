@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     google_client_secret: str = ""
     google_oauth_redirect_uri: str = "http://localhost:8000/api/routes/auth/google/callback"
     google_maps_api_key: str = ""
+    auth_allowed_emails: str = ""
+    auth_allowed_domains: str = ""
 
     @field_validator("database_url", mode="before")
     @classmethod
@@ -39,6 +41,10 @@ class Settings(BaseSettings):
             return "postgresql+psycopg://" + value.removeprefix("postgresql://")
         return value
 
+    @staticmethod
+    def _parse_csv_list(raw: str) -> list[str]:
+        return [item.strip().lower() for item in raw.split(",") if item.strip()]
+
     @property
     def frontend_origin(self) -> str:
         return self.app_url.rstrip("/")
@@ -46,6 +52,30 @@ class Settings(BaseSettings):
     @property
     def resolved_token_encryption_secret(self) -> str:
         return self.token_encryption_secret or self.session_secret
+
+    @property
+    def allowed_auth_emails(self) -> set[str]:
+        return set(self._parse_csv_list(self.auth_allowed_emails))
+
+    @property
+    def allowed_auth_domains(self) -> set[str]:
+        return set(self._parse_csv_list(self.auth_allowed_domains))
+
+    def is_email_allowed_to_sign_in(self, email: str) -> bool:
+        normalized_email = email.strip().lower()
+        if not normalized_email:
+            return False
+
+        allowed_emails = self.allowed_auth_emails
+        allowed_domains = self.allowed_auth_domains
+        if not allowed_emails and not allowed_domains:
+            return True
+
+        if normalized_email in allowed_emails:
+            return True
+
+        domain = normalized_email.partition("@")[2]
+        return bool(domain and domain in allowed_domains)
 
     @model_validator(mode="after")
     def validate_security(self) -> "Settings":

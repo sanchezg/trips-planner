@@ -1,3 +1,5 @@
+from urllib.parse import urlencode
+
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
@@ -12,6 +14,18 @@ from app.schemas.user import UserRead
 from app.services.auth.google_oauth import build_google_login_url, exchange_code_for_user
 
 router = APIRouter()
+
+
+def _build_login_redirect_with_error(error_code: str) -> RedirectResponse:
+    query = urlencode({"error": error_code})
+    response = RedirectResponse(f"{settings.frontend_origin}/login?{query}")
+    response.delete_cookie(
+        settings.oauth_state_cookie_name,
+        domain=settings.session_cookie_domain,
+        secure=settings.session_cookie_secure,
+        samesite="lax",
+    )
+    return response
 
 
 @router.get("/google/login")
@@ -41,9 +55,13 @@ async def google_callback(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid OAuth state")
 
     payload = await exchange_code_for_user(code)
+    email = payload["email"]
+    if not settings.is_email_allowed_to_sign_in(email):
+        return _build_login_redirect_with_error("unauthorized_email")
+
     user = get_or_create_google_user(
         db,
-        email=payload["email"],
+        email=email,
         name=payload.get("name"),
         avatar_url=payload.get("picture"),
         google_sub=payload["sub"],
