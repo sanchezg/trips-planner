@@ -26,11 +26,11 @@ services:
       db:
         condition: service_healthy
     environment:
-      APP_ENV: development
-      APP_URL: http://localhost:3000
-      API_BASE_URL: http://localhost:8000
-      DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/trips_planner
-      SESSION_SECRET: change-me
+      APP_ENV: ${APP_ENV:-development}
+      APP_URL: ${APP_URL:-http://localhost:3000}
+      API_BASE_URL: ${API_BASE_URL:-http://localhost:8000}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://postgres:postgres@db:5432/trips_planner}
+      SESSION_SECRET: ${SESSION_SECRET:-change-me}
       TOKEN_ENCRYPTION_SECRET: ${TOKEN_ENCRYPTION_SECRET:-change-me}
       SESSION_COOKIE_NAME: trip_session
       SESSION_COOKIE_DOMAIN:
@@ -43,7 +43,7 @@ services:
       WATCHFILES_FORCE_POLLING: "true"
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
-      GOOGLE_OAUTH_REDIRECT_URI: http://localhost:8000/api/routes/auth/google/callback
+      GOOGLE_OAUTH_REDIRECT_URI: ${GOOGLE_OAUTH_REDIRECT_URI:-http://localhost:8000/api/routes/auth/google/callback}
       GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
     volumes:
       - ./backend:/app
@@ -60,10 +60,10 @@ services:
       backend:
         condition: service_started
     environment:
-      NODE_ENV: development
-      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
-      NEXT_PUBLIC_APP_URL: http://localhost:3000
-      API_BASE_URL_INTERNAL: http://backend:8000
+      NODE_ENV: ${NODE_ENV:-development}
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      API_BASE_URL_INTERNAL: ${API_BASE_URL_INTERNAL:-http://backend:8000}
       WATCHPACK_POLLING: "true"
       CHOKIDAR_USEPOLLING: "true"
     volumes:
