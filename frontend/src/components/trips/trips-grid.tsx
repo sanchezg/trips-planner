@@ -14,7 +14,7 @@ export function TripsGrid({ trips }: { trips: TripSummary[] }) {
             </CardHeader>
             <CardContent>
               <p className="text-sm leading-6 text-muted-foreground">{trip.description ?? "No description yet."}</p>
-              <p className="mt-4 text-xs uppercase tracking-[0.2em] text-primary">{trip.visibility}</p>
+              <p className="mt-4 text-xs uppercase tracking-[0.2em] text-primary">{trip.is_owner ? trip.visibility : 'shared with you'}</p>
             </CardContent>
           </Card>
         </Link>

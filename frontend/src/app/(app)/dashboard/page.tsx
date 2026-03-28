@@ -3,6 +3,7 @@ import { UserMenu } from "@/components/auth/user-menu";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CreateTripForm } from "@/components/trips/create-trip-form";
+import { JoinTripForm } from "@/components/trips/join-trip-form";
 import { listTrips } from "@/features/trips/api";
 import { getIntegrationHealth } from "@/features/integrations/api";
 import { TripsGrid } from "@/components/trips/trips-grid";
@@ -29,7 +30,10 @@ export default async function DashboardPage() {
       actions={user ? <UserMenu user={user} /> : null}
     >
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <CreateTripForm />
+        <div className='space-y-6'>
+          <CreateTripForm />
+          <JoinTripForm />
+        </div>
         <Card>
           <CardHeader>
             <CardTitle>Explore</CardTitle>
@@ -39,15 +43,6 @@ export default async function DashboardPage() {
             <p className="text-sm leading-6 text-muted-foreground">
               Explore trips, destinations and more!
             </p>
-            {/* {integrations.status === "fulfilled" ? (
-              <div className="grid gap-3 text-sm md:grid-cols-3">
-                <Metric label="Auth" value={integrations.value.auth} />
-                <Metric label="Calendar" value={integrations.value.calendar} />
-                <Metric label="Maps" value={integrations.value.maps} />
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">Integration status unavailable until the backend is running.</p>
-            )} */}
           </CardContent>
         </Card>
       </div>

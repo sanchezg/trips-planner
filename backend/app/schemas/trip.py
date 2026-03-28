@@ -12,6 +12,14 @@ class TripCreate(BaseModel):
     visibility: str = "private"
 
 
+class TripJoin(BaseModel):
+    code: str
+
+
+class TripShareCodeRead(BaseModel):
+    share_code: str
+
+
 class TripSettingsRead(BaseModel):
     event_categories: list[str]
     calendar_auto_sync: bool
@@ -31,7 +39,9 @@ class TripRead(BaseModel):
     starts_at: date | None = None
     ends_at: date | None = None
     visibility: str
+    share_code: str | None = None
     event_categories: list[str]
     calendar_auto_sync: bool
+    is_owner: bool
 
     model_config = {"from_attributes": True}

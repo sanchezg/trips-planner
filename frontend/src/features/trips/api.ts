@@ -9,13 +9,19 @@ export type TripSummary = {
   starts_at: string | null;
   ends_at: string | null;
   visibility: string;
+  share_code: string | null;
   event_categories: string[];
   calendar_auto_sync: boolean;
+  is_owner: boolean;
 };
 
 export type TripSettings = {
   event_categories: string[];
   calendar_auto_sync: boolean;
+};
+
+export type TripShareCode = {
+  share_code: string;
 };
 
 export async function listTrips() {
@@ -30,6 +36,19 @@ export async function createTrip(payload: TripCreateInput) {
   return apiFetch<TripSummary>("/api/routes/trips", {
     method: "POST",
     body: JSON.stringify(payload)
+  });
+}
+
+export async function joinTrip(code: string) {
+  return apiFetch<TripSummary>("/api/routes/trips/join", {
+    method: 'POST',
+    body: JSON.stringify({ code })
+  });
+}
+
+export async function createTripShareCode(tripId: string) {
+  return apiFetch<TripShareCode>(`/api/routes/trips/${tripId}/share-code`, {
+    method: 'POST'
   });
 }
 

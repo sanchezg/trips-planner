@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.db.models.event import Event
 from app.db.models.trip import Trip
+from app.db.models.trip_member import TripMember
 from app.db.models.user import User
 from app.dependencies.auth import get_current_user
 from app.dependencies.db import get_db
@@ -10,6 +11,17 @@ from app.schemas.event import EventCreate, EventMutationResult, EventRead, Event
 from app.services.conflict_detection.service import detect_conflicts
 
 router = APIRouter()
+
+
+
+def _get_accessible_trip(db: Session, trip_id: str, user_id: str) -> Trip | None:
+    return (
+        db.query(Trip)
+        .outerjoin(TripMember, TripMember.trip_id == Trip.id)
+        .filter(Trip.id == trip_id)
+        .filter((Trip.owner_id == user_id) | (TripMember.user_id == user_id))
+        .first()
+    )
 
 
 
@@ -45,7 +57,7 @@ def _build_warnings(db: Session, payload: EventCreate | EventUpdate, ignore_even
 
 @router.get('', response_model=list[EventRead])
 def list_events(trip_id: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    trip = _get_owned_trip(db, trip_id, current_user.id)
+    trip = _get_accessible_trip(db, trip_id, current_user.id)
     if not trip:
         raise HTTPException(status_code=404, detail='Trip not found')
 

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ShareTripButton } from '@/components/trips/share-trip-button';
 import { SyncTripButton } from '@/components/trips/sync-trip-button';
 import { TripEventsPlanner } from '@/components/trips/trip-events-planner';
 import { AppShell } from '@/components/shared/app-shell';
@@ -34,7 +35,8 @@ export default async function TripDetailsPage({ params }: { params: Promise<{ tr
             <div className='flex flex-wrap items-start gap-3'>
               <Link href={'/trips/' + tripId + '/itinerary'}><Button variant='outline'>Itinerary</Button></Link>
               <Link href={'/trips/' + tripId + '/expenses'}><Button variant='outline'>Expenses</Button></Link>
-              <Link href={'/trips/' + tripId + '/settings'}><Button variant='outline'>Settings</Button></Link>
+              {trip?.is_owner ? <Link href={'/trips/' + tripId + '/settings'}><Button variant='outline'>Settings</Button></Link> : null}
+              {trip?.is_owner ? <ShareTripButton tripId={tripId} /> : null}
               <SyncTripButton tripId={tripId} />
             </div>
           </CardContent>

@@ -16,6 +16,7 @@ class Trip(Base):
     starts_at: Mapped[date | None] = mapped_column(Date, nullable=True)
     ends_at: Mapped[date | None] = mapped_column(Date, nullable=True)
     visibility: Mapped[str] = mapped_column(String, default="private")
+    share_code: Mapped[str | None] = mapped_column(String, unique=True, nullable=True)
     event_categories: Mapped[list[str]] = mapped_column(JSON, default=lambda: DEFAULT_EVENT_CATEGORIES.copy())
     calendar_auto_sync: Mapped[bool] = mapped_column(Boolean, default=False)
     owner_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
