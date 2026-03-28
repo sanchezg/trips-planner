@@ -1,6 +1,6 @@
-from typing import Literal
+from typing import Any, Literal
 
-from pydantic import model_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -24,6 +24,20 @@ class Settings(BaseSettings):
     google_client_secret: str = ""
     google_oauth_redirect_uri: str = "http://localhost:8000/api/routes/auth/google/callback"
     google_maps_api_key: str = ""
+
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def normalize_database_url(cls, value: Any) -> Any:
+        if not isinstance(value, str):
+            return value
+
+        if value.startswith("postgresql+psycopg://"):
+            return value
+        if value.startswith("postgres://"):
+            return "postgresql+psycopg://" + value.removeprefix("postgres://")
+        if value.startswith("postgresql://"):
+            return "postgresql+psycopg://" + value.removeprefix("postgresql://")
+        return value
 
     @property
     def frontend_origin(self) -> str:
