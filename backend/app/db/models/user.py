@@ -23,6 +23,7 @@ class User(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
 
     trips = relationship("Trip", back_populates="owner")
+    sessions = relationship("UserSession", back_populates="user", cascade="all, delete-orphan")
 
     @property
     def google_access_token(self) -> str | None:

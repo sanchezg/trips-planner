@@ -1,32 +1,25 @@
+import hashlib
 import secrets
 
 from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
+
 from app.core.config import settings
 
-session_serializer = URLSafeTimedSerializer(settings.session_secret, salt="trip-session")
 oauth_state_serializer = URLSafeTimedSerializer(settings.session_secret, salt="trip-oauth-state")
 
 
-
-def create_session_token(payload: dict[str, str]) -> str:
-    return session_serializer.dumps(payload)
-
+def create_session_token() -> str:
+    return secrets.token_urlsafe(48)
 
 
-def decode_session_token(token: str) -> dict[str, str] | None:
-    try:
-        data = session_serializer.loads(token, max_age=settings.session_max_age_seconds)
-        return data if isinstance(data, dict) else None
-    except (BadSignature, SignatureExpired):
-        return None
-
+def hash_session_token(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
 def create_oauth_state() -> tuple[str, str]:
     state = secrets.token_urlsafe(32)
     cookie_value = oauth_state_serializer.dumps({"state": state})
     return state, cookie_value
-
 
 
 def validate_oauth_state(cookie_value: str | None, state: str | None) -> bool:

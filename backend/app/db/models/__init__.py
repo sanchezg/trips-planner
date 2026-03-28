@@ -7,3 +7,4 @@ from .trip import Trip
 from .trip_member import TripMember
 from .trip_share_code import TripShareCode
 from .user import User
+from .user_session import UserSession

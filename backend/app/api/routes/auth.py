@@ -6,6 +6,7 @@ from app.core.config import settings
 from app.core.security import create_oauth_state, create_session_token, validate_oauth_state
 from app.dependencies.auth import get_current_user
 from app.dependencies.db import get_db
+from app.repositories.session_repository import create_user_session, revoke_session
 from app.repositories.user_repository import get_or_create_google_user
 from app.schemas.user import UserRead
 from app.services.auth.google_oauth import build_google_login_url, exchange_code_for_user
@@ -50,7 +51,8 @@ async def google_callback(
         google_refresh_token=payload.get("refresh_token"),
         google_token_expires_at=payload.get("token_expires_at"),
     )
-    token = create_session_token({"user_id": user.id, "email": user.email})
+    token = create_session_token()
+    create_user_session(db, user=user, session_token=token)
     response = RedirectResponse(settings.frontend_origin + "/dashboard")
     response.set_cookie(
         settings.session_cookie_name,
@@ -76,7 +78,13 @@ def me(current_user=Depends(get_current_user)):
 
 
 @router.post("/logout")
-def logout() -> Response:
+def logout(
+    trip_session: str | None = Cookie(default=None, alias=settings.session_cookie_name),
+    db: Session = Depends(get_db),
+) -> Response:
+    if trip_session:
+        revoke_session(db, trip_session)
+
     response = Response(status_code=204)
     response.delete_cookie(
         settings.session_cookie_name,
