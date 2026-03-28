@@ -24,7 +24,7 @@ export function JoinTripForm() {
           startTransition(async () => {
             try {
               const trip = await joinTrip(code);
-              setMessage('Trip joined successfully.');
+              setMessage(`Trip joined with ${trip.membership_role} access.`);
               router.push('/trips/' + trip.id);
             } catch (error) {
               setMessage(error instanceof Error ? error.message : 'Unable to join trip.');

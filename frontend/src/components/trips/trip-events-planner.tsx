@@ -19,6 +19,7 @@ const eventDateFormatter = new Intl.DateTimeFormat('en', { month: 'short', day: 
 const sectionDateFormatter = new Intl.DateTimeFormat('en', { month: 'long', day: 'numeric', year: 'numeric' });
 
 type TripEventsPlannerProps = {
+  canEdit: boolean;
   categories: string[];
   trip: TripSummary;
   initialEvents: TripEvent[];
@@ -164,7 +165,7 @@ function groupEventsByDay(events: TripEvent[]) {
   return Array.from(grouped.entries());
 }
 
-export function TripEventsPlanner({ categories, trip, initialEvents }: TripEventsPlannerProps) {
+export function TripEventsPlanner({ canEdit, categories, trip, initialEvents }: TripEventsPlannerProps) {
   const [events, setEvents] = useState(() => sortEvents(initialEvents));
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -296,18 +297,20 @@ export function TripEventsPlanner({ categories, trip, initialEvents }: TripEvent
                               </p>
                               {event.address ? <p className="mt-1 text-sm text-muted-foreground">{event.address}</p> : null}
                             </div>
-                            <Button
-                              onClick={() => {
-                                setEditingEventId(event.id);
-                                setWarnings([]);
-                                setMessage(null);
-                              }}
-                              type="button"
-                              variant="ghost"
-                            >
-                              <Pencil className="h-4 w-4" />
-                              Edit
-                            </Button>
+                            {canEdit ? (
+                              <Button
+                                onClick={() => {
+                                  setEditingEventId(event.id);
+                                  setWarnings([]);
+                                  setMessage(null);
+                                }}
+                                type="button"
+                                variant="ghost"
+                              >
+                                <Pencil className="h-4 w-4" />
+                                Edit
+                              </Button>
+                            ) : null}
                           </div>
                         </div>
                       ))}
@@ -331,10 +334,12 @@ export function TripEventsPlanner({ categories, trip, initialEvents }: TripEvent
               <Badge>Events</Badge>
               <CardTitle className="mt-2 text-xl">Itinerary by day</CardTitle>
             </div>
-            <Button onClick={handleCancelEdit} type="button" variant="outline">
-              <Plus className="h-4 w-4" />
-              Add event
-            </Button>
+            {canEdit ? (
+              <Button onClick={handleCancelEdit} type="button" variant="outline">
+                <Plus className="h-4 w-4" />
+                Add event
+              </Button>
+            ) : null}
           </CardHeader>
           <CardContent className="space-y-5">
             {groupedEvents.length ? groupedEvents.map(([day, items]) => (
@@ -358,20 +363,22 @@ export function TripEventsPlanner({ categories, trip, initialEvents }: TripEvent
                           </div>
                           {event.notes ? <p className="text-sm leading-6 text-muted-foreground">{event.notes}</p> : null}
                         </div>
-                        <div className="flex gap-2">
-                          <Button onClick={() => {
-                            setEditingEventId(event.id);
-                            setWarnings([]);
-                            setMessage(null);
-                          }} type="button" variant="outline">
-                            <Pencil className="h-4 w-4" />
-                            Edit
-                          </Button>
-                          <Button onClick={() => handleDelete(event.id)} type="button" variant="ghost">
-                            <Trash2 className="h-4 w-4" />
-                            Remove
-                          </Button>
-                        </div>
+                        {canEdit ? (
+                          <div className="flex gap-2">
+                            <Button onClick={() => {
+                              setEditingEventId(event.id);
+                              setWarnings([]);
+                              setMessage(null);
+                            }} type="button" variant="outline">
+                              <Pencil className="h-4 w-4" />
+                              Edit
+                            </Button>
+                            <Button onClick={() => handleDelete(event.id)} type="button" variant="ghost">
+                              <Trash2 className="h-4 w-4" />
+                              Remove
+                            </Button>
+                          </div>
+                        ) : null}
                       </div>
                     </div>
                   ))}
@@ -386,87 +393,101 @@ export function TripEventsPlanner({ categories, trip, initialEvents }: TripEvent
         </Card>
       </div>
 
-      <Card className="h-fit xl:sticky xl:top-8">
-        <CardHeader>
-          <Badge>{editingEvent ? 'Edit event' : 'Create event'}</Badge>
-          <CardTitle className="mt-2 text-xl">{editingEvent ? `Update ${editingEvent.title}` : 'Plan a new event'}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form className="space-y-4" onSubmit={form.handleSubmit((values) => {
-            startTransition(async () => {
-              try {
-                const response = editingEvent
-                  ? await updateTripEvent(editingEvent.id, trip.id, values)
-                  : await createTripEvent(trip.id, values);
+      {canEdit ? (
+        <Card className="h-fit xl:sticky xl:top-8">
+          <CardHeader>
+            <Badge>{editingEvent ? 'Edit event' : 'Create event'}</Badge>
+            <CardTitle className="mt-2 text-xl">{editingEvent ? `Update ${editingEvent.title}` : 'Plan a new event'}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form className="space-y-4" onSubmit={form.handleSubmit((values) => {
+              startTransition(async () => {
+                try {
+                  const response = editingEvent
+                    ? await updateTripEvent(editingEvent.id, trip.id, values)
+                    : await createTripEvent(trip.id, values);
 
-                upsertEvent(response.event);
-                setWarnings(response.warnings);
-                setMessage(editingEvent ? 'Event updated.' : 'Event added to the trip.');
-                setEditingEventId(null);
-                form.reset(toFormDefaults(trip));
-              } catch (error) {
-                setMessage(error instanceof Error ? error.message : 'Unable to save the event.');
-              }
-            });
-          })}>
-            <label className="space-y-2 text-sm">
-              <span>Title</span>
-              <Input {...form.register('title')} placeholder="Dinner at the harbor" />
-            </label>
-
-            <div className="grid gap-4 sm:grid-cols-2">
+                  upsertEvent(response.event);
+                  setWarnings(response.warnings);
+                  setMessage(editingEvent ? 'Event updated.' : 'Event added to the trip.');
+                  setEditingEventId(null);
+                  form.reset(toFormDefaults(trip));
+                } catch (error) {
+                  setMessage(error instanceof Error ? error.message : 'Unable to save the event.');
+                }
+              });
+            })}>
               <label className="space-y-2 text-sm">
-                <span>Category</span>
-                <input className="flex h-11 w-full rounded-2xl border border-border bg-input px-4 py-2 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none" list="trip-event-categories" {...form.register('category')} placeholder="Choose or type a category" />
-                <datalist id="trip-event-categories">
-                  {categories.map((category) => <option key={category} value={category} />)}
-                </datalist>
+                <span>Title</span>
+                <Input {...form.register('title')} placeholder="Dinner at the harbor" />
               </label>
-              <label className="space-y-2 text-sm">
-                <span>Destination ID</span>
-                <Input {...form.register('destinationId')} placeholder="Optional destination reference" />
-              </label>
-            </div>
 
-            <label className="space-y-2 text-sm">
-              <span>Address</span>
-              <Input {...form.register('address')} placeholder="Street, venue, or meeting point" />
-            </label>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <label className="space-y-2 text-sm">
-                <span>Starts at</span>
-                <Input type="datetime-local" {...form.register('startsAt')} />
-              </label>
-              <label className="space-y-2 text-sm">
-                <span>Ends at</span>
-                <Input type="datetime-local" {...form.register('endsAt')} />
-              </label>
-            </div>
-
-            <label className="space-y-2 text-sm">
-              <span>Notes</span>
-              <textarea className="min-h-32 w-full rounded-[1.35rem] border border-border bg-input px-4 py-3 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none" {...form.register('notes')} placeholder="Add confirmations, companions, or reminders." />
-            </label>
-
-            {warnings.length ? (
-              <div className="rounded-3xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                <p className="font-semibold">Heads up</p>
-                <ul className="mt-2 space-y-1">
-                  {warnings.map((warning) => <li key={warning}>{warning}</li>)}
-                </ul>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="space-y-2 text-sm">
+                  <span>Category</span>
+                  <input className="flex h-11 w-full rounded-2xl border border-border bg-input px-4 py-2 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none" list="trip-event-categories" {...form.register('category')} placeholder="Choose or type a category" />
+                  <datalist id="trip-event-categories">
+                    {categories.map((category) => <option key={category} value={category} />)}
+                  </datalist>
+                </label>
+                <label className="space-y-2 text-sm">
+                  <span>Destination ID</span>
+                  <Input {...form.register('destinationId')} placeholder="Optional destination reference" />
+                </label>
               </div>
-            ) : null}
 
-            {message ? <p className="text-sm text-muted-foreground">{message}</p> : null}
+              <label className="space-y-2 text-sm">
+                <span>Address</span>
+                <Input {...form.register('address')} placeholder="Street, venue, or meeting point" />
+              </label>
 
-            <div className="flex flex-wrap gap-3">
-              <Button disabled={isPending} type="submit">{isPending ? 'Saving...' : editingEvent ? 'Save changes' : 'Add event'}</Button>
-              {editingEvent ? <Button onClick={handleCancelEdit} type="button" variant="outline">Cancel</Button> : null}
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="space-y-2 text-sm">
+                  <span>Starts at</span>
+                  <Input type="datetime-local" {...form.register('startsAt')} />
+                </label>
+                <label className="space-y-2 text-sm">
+                  <span>Ends at</span>
+                  <Input type="datetime-local" {...form.register('endsAt')} />
+                </label>
+              </div>
+
+              <label className="space-y-2 text-sm">
+                <span>Notes</span>
+                <textarea className="min-h-32 w-full rounded-[1.35rem] border border-border bg-input px-4 py-3 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none" {...form.register('notes')} placeholder="Add confirmations, companions, or reminders." />
+              </label>
+
+              {warnings.length ? (
+                <div className="rounded-3xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                  <p className="font-semibold">Heads up</p>
+                  <ul className="mt-2 space-y-1">
+                    {warnings.map((warning) => <li key={warning}>{warning}</li>)}
+                  </ul>
+                </div>
+              ) : null}
+
+              {message ? <p className="text-sm text-muted-foreground">{message}</p> : null}
+
+              <div className="flex flex-wrap gap-3">
+                <Button disabled={isPending} type="submit">{isPending ? 'Saving...' : editingEvent ? 'Save changes' : 'Add event'}</Button>
+                {editingEvent ? <Button onClick={handleCancelEdit} type="button" variant="outline">Cancel</Button> : null}
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="h-fit xl:sticky xl:top-8">
+          <CardHeader>
+            <Badge>Viewer access</Badge>
+            <CardTitle className="mt-2 text-xl">This trip is read only</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm leading-6 text-muted-foreground">
+              You can review the itinerary and sync it to your own calendar, but only owners and editors can add, update, or remove events.
+            </p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

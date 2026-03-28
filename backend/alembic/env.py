@@ -10,7 +10,7 @@ if str(ROOT) not in sys.path:
 
 from app.core.config import settings
 from app.db.base import Base
-from app.db.models import calendar, destination, event, expense, invitation, trip, trip_member, user
+from app.db.models import calendar, destination, event, expense, invitation, trip, trip_member, trip_share_code, user
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.database_url)

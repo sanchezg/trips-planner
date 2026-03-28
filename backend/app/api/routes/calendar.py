@@ -2,11 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.db.models.event import Event
-from app.db.models.trip import Trip
-from app.db.models.trip_member import TripMember
 from app.db.models.user import User
 from app.dependencies.auth import get_current_user
 from app.dependencies.db import get_db
+from app.repositories.trip_repository import get_for_user
 from app.services.google_calendar.service import export_trip_events
 
 router = APIRouter()
@@ -14,13 +13,7 @@ router = APIRouter()
 
 @router.post("/export/{trip_id}")
 async def export_calendar(trip_id: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict:
-    trip = (
-        db.query(Trip)
-        .outerjoin(TripMember, TripMember.trip_id == Trip.id)
-        .filter(Trip.id == trip_id)
-        .filter((Trip.owner_id == current_user.id) | (TripMember.user_id == current_user.id))
-        .first()
-    )
+    trip = get_for_user(db, trip_id, current_user.id)
     if not trip:
         raise HTTPException(status_code=404, detail="Trip not found")
 

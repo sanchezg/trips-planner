@@ -5,4 +5,5 @@ from .expense import Expense
 from .invitation import Invitation
 from .trip import Trip
 from .trip_member import TripMember
+from .trip_share_code import TripShareCode
 from .user import User
