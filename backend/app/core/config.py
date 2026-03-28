@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     api_base_url: str = "http://localhost:8000"
     database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5432/trips_planner"
     session_secret: str = "change-me"
+    token_encryption_secret: str | None = None
     session_cookie_name: str = "trip_session"
     session_cookie_domain: str | None = None
     session_cookie_secure: bool = False
@@ -28,11 +29,17 @@ class Settings(BaseSettings):
     def frontend_origin(self) -> str:
         return self.app_url.rstrip("/")
 
+    @property
+    def resolved_token_encryption_secret(self) -> str:
+        return self.token_encryption_secret or self.session_secret
+
     @model_validator(mode="after")
     def validate_security(self) -> "Settings":
         if self.app_env.lower() == "production":
             if self.session_secret == "change-me":
                 raise ValueError("SESSION_SECRET must be set to a strong random value in production")
+            if self.resolved_token_encryption_secret == "change-me":
+                raise ValueError("TOKEN_ENCRYPTION_SECRET must be set to a strong random value in production")
             if not self.session_cookie_secure:
                 raise ValueError("SESSION_COOKIE_SECURE must be true in production")
             if self.session_cookie_samesite != "none":

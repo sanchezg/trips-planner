@@ -31,6 +31,7 @@ services:
       API_BASE_URL: http://localhost:8000
       DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/trips_planner
       SESSION_SECRET: change-me
+      TOKEN_ENCRYPTION_SECRET: ${TOKEN_ENCRYPTION_SECRET:-change-me}
       SESSION_COOKIE_NAME: trip_session
       SESSION_COOKIE_DOMAIN:
       SESSION_COOKIE_SECURE: "false"
