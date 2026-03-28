@@ -46,6 +46,8 @@ def post_trip(payload: TripCreate, current_user: User = Depends(get_current_user
         description=payload.description,
         starts_at=payload.startsAt,
         ends_at=payload.endsAt,
+        flight_number=payload.flightNumber,
+        airport=payload.airport,
         visibility=payload.visibility,
     )
     trip = create_trip(db, trip)

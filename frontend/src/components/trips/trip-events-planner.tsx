@@ -52,6 +52,13 @@ function toCalendarDate(value: string) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12);
 }
 
+function getTripDayAnchor(value: string | null) {
+  if (!value) {
+    return null;
+  }
+  return toCalendarDate(value);
+}
+
 function getCoveredDayKeys(event: TripEvent) {
   const cursor = toCalendarDate(event.starts_at);
   const end = toCalendarDate(event.ends_at);
@@ -83,7 +90,7 @@ function getInitialSelectedDay(trip: TripSummary, events: TripEvent[], tripDays:
     return toDateKey(firstEvent.starts_at);
   }
 
-  return trip.starts_at ?? tripDays[0]?.iso ?? null;
+  return trip.starts_at ? toDateKey(trip.starts_at) : tripDays[0]?.iso ?? null;
 }
 
 function toDateTimeLocalValue(value: string) {
@@ -93,9 +100,15 @@ function toDateTimeLocalValue(value: string) {
   return localDate.toISOString().slice(0, 16);
 }
 
-function buildDefaultDateTime(dateValue: string | null, hour: number) {
-  const date = dateValue ?? new Date().toISOString().slice(0, 10);
-  return `${date}T${String(hour).padStart(2, '0')}:00`;
+function buildDefaultDateTime(value: string | null, hour: number) {
+  if (value) {
+    return toDateTimeLocalValue(value);
+  }
+
+  const now = new Date();
+  now.setHours(hour, 0, 0, 0);
+  const offset = now.getTimezoneOffset();
+  return new Date(now.getTime() - offset * 60_000).toISOString().slice(0, 16);
 }
 
 function toFormDefaults(trip: TripSummary, event?: TripEvent | null): EventFormValues {
@@ -117,7 +130,7 @@ function toFormDefaults(trip: TripSummary, event?: TripEvent | null): EventFormV
     category: trip.event_categories[0] ?? '',
     address: '',
     startsAt: buildDefaultDateTime(trip.starts_at, 9),
-    endsAt: buildDefaultDateTime(trip.starts_at ?? trip.ends_at, 10),
+    endsAt: buildDefaultDateTime(trip.ends_at ?? trip.starts_at, 10),
     notes: ''
   };
 }
@@ -134,8 +147,12 @@ function buildTripDays(trip: TripSummary, events: TripEvent[]): TripDay[] {
     }
   }
 
-  const cursor = new Date(`${trip.starts_at}T12:00:00`);
-  const end = new Date(`${trip.ends_at}T12:00:00`);
+  const cursor = getTripDayAnchor(trip.starts_at);
+  const end = getTripDayAnchor(trip.ends_at);
+  if (!cursor || !end) {
+    return [];
+  }
+
   const days: TripDay[] = [];
 
   while (cursor <= end && days.length < 62) {
@@ -238,7 +255,7 @@ export function TripEventsPlanner({ canEdit, categories, trip, initialEvents }: 
               <Badge>Trip calendar</Badge>
               <CardTitle className="flex items-center gap-2 text-xl">
                 <CalendarDays className="h-5 w-5" />
-                {trip.starts_at && trip.ends_at ? `${sectionDateFormatter.format(new Date(`${trip.starts_at}T12:00:00`))} to ${sectionDateFormatter.format(new Date(`${trip.ends_at}T12:00:00`))}` : 'Add trip dates to unlock the calendar overview'}
+                {trip.starts_at && trip.ends_at ? `${sectionDateFormatter.format(new Date(trip.starts_at))} to ${sectionDateFormatter.format(new Date(trip.ends_at))}` : 'Add trip dates to unlock the calendar overview'}
               </CardTitle>
             </div>
             <Badge className="bg-muted text-foreground">{events.length} event{events.length === 1 ? '' : 's'}</Badge>

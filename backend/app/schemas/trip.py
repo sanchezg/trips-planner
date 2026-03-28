@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -11,8 +11,10 @@ ShareableTripRole = Literal["editor", "viewer"]
 class TripCreate(BaseModel):
     name: str
     description: str | None = None
-    startsAt: date | None = None
-    endsAt: date | None = None
+    startsAt: datetime | None = None
+    endsAt: datetime | None = None
+    flightNumber: str | None = None
+    airport: str | None = None
     visibility: str = "private"
 
 
@@ -45,8 +47,10 @@ class TripRead(BaseModel):
     id: str
     name: str
     description: str | None = None
-    starts_at: date | None = None
-    ends_at: date | None = None
+    starts_at: datetime | None = None
+    ends_at: datetime | None = None
+    flight_number: str | None = None
+    airport: str | None = None
     visibility: str
     event_categories: list[str]
     calendar_auto_sync: bool

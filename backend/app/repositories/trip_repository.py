@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import datetime, timezone
 import secrets
 import string
 
@@ -22,7 +22,7 @@ _SHARE_CODE_ALPHABET = string.ascii_uppercase + string.digits
 
 
 def _shared_trip_window_filter():
-    return or_(Trip.ends_at.is_(None), Trip.ends_at >= date.today())
+    return or_(Trip.ends_at.is_(None), Trip.ends_at >= datetime.now(timezone.utc))
 
 
 def _base_user_trip_query(db: Session, user_id: str):
@@ -54,7 +54,7 @@ def get_trip_role(db: Session, trip: Trip, user_id: str) -> str | None:
     if trip.owner_id == user_id:
         return TRIP_ROLE_OWNER
 
-    if trip.ends_at is not None and trip.ends_at < date.today():
+    if trip.ends_at is not None and trip.ends_at < datetime.now(timezone.utc):
         return None
 
     membership = (

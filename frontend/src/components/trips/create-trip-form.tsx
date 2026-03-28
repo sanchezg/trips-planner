@@ -24,6 +24,8 @@ export function CreateTripForm() {
       description: "",
       startsAt: "",
       endsAt: "",
+      flightNumber: "",
+      airport: "",
       visibility: "private"
     },
     resolver: zodResolver(tripCreateSchema)
@@ -67,12 +69,23 @@ export function CreateTripForm() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <label className="space-y-2 text-sm">
-              <span>Starts at</span>
-              <Input type="date" {...form.register("startsAt")} />
+              <span>Arrival date and time</span>
+              <Input type="datetime-local" {...form.register("startsAt")} />
             </label>
             <label className="space-y-2 text-sm">
-              <span>Ends at</span>
-              <Input type="date" {...form.register("endsAt")} />
+              <span>Departure date and time</span>
+              <Input type="datetime-local" {...form.register("endsAt")} />
+            </label>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="space-y-2 text-sm">
+              <span>Flight number</span>
+              <Input {...form.register("flightNumber")} placeholder="AR1234" />
+            </label>
+            <label className="space-y-2 text-sm">
+              <span>Airport</span>
+              <Input {...form.register("airport")} placeholder="EZE or Ministro Pistarini" />
             </label>
           </div>
 

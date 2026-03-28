@@ -98,15 +98,22 @@ async def _clear_calendar_events(access_token: str, calendar_id: str) -> None:
 
 async def _create_calendar_events(access_token: str, calendar_id: str, trip: Trip, events: list[Event]) -> None:
     if trip.starts_at and trip.ends_at:
+        trip_description_parts = [trip.description or f"Overview for {trip.name}"]
+        if trip.flight_number:
+            trip_description_parts.append(f"Flight: {trip.flight_number}")
+        if trip.airport:
+            trip_description_parts.append(f"Airport: {trip.airport}")
+
         await _google_request(
             "POST",
             f"/calendars/{quote(calendar_id, safe='')}/events",
             access_token,
             json={
                 "summary": trip.name,
-                "description": trip.description or f"Overview for {trip.name}",
-                "start": {"date": trip.starts_at.isoformat()},
-                "end": {"date": trip.ends_at.isoformat()},
+                "description": "\n".join(trip_description_parts),
+                "location": trip.airport,
+                "start": {"dateTime": trip.starts_at.astimezone(timezone.utc).isoformat()},
+                "end": {"dateTime": trip.ends_at.astimezone(timezone.utc).isoformat()},
             },
         )
 

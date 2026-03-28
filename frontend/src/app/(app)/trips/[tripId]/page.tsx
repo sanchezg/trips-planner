@@ -36,6 +36,11 @@ export default async function TripDetailsPage({ params }: { params: Promise<{ tr
           </CardHeader>
           <CardContent className='space-y-4'>
             <p className='text-sm leading-6 text-muted-foreground'>{trip?.description ?? 'No description available.'}</p>
+            {trip?.flight_number || trip?.airport ? (
+              <div className='rounded-2xl border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground'>
+                <p>{[trip.flight_number, trip.airport].filter(Boolean).join(' · ')}</p>
+              </div>
+            ) : null}
             <div className='flex flex-wrap items-start gap-3'>
               <Link href={'/trips/' + tripId + '/itinerary'}><Button variant='outline'>Itinerary</Button></Link>
               <Link href={'/trips/' + tripId + '/expenses'}><Button variant='outline'>Expenses</Button></Link>

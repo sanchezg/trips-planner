@@ -11,6 +11,8 @@ export type TripSummary = {
   description: string | null;
   starts_at: string | null;
   ends_at: string | null;
+  flight_number: string | null;
+  airport: string | null;
   visibility: string;
   event_categories: string[];
   calendar_auto_sync: boolean;
@@ -41,7 +43,13 @@ export async function getTrip(tripId: string) {
 export async function createTrip(payload: TripCreateInput) {
   return apiFetch<TripSummary>("/api/routes/trips", {
     method: "POST",
-    body: JSON.stringify(payload)
+    body: JSON.stringify({
+      ...payload,
+      startsAt: payload.startsAt ? new Date(payload.startsAt).toISOString() : undefined,
+      endsAt: payload.endsAt ? new Date(payload.endsAt).toISOString() : undefined,
+      flightNumber: payload.flightNumber || undefined,
+      airport: payload.airport || undefined,
+    })
   });
 }
 

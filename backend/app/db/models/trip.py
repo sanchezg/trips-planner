@@ -1,6 +1,6 @@
 import uuid
-from datetime import date, datetime
-from sqlalchemy import Boolean, Date, DateTime, ForeignKey, JSON, String, Text
+from datetime import datetime
+from sqlalchemy import Boolean, DateTime, ForeignKey, JSON, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
 
@@ -13,8 +13,10 @@ class Trip(Base):
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     name: Mapped[str] = mapped_column(String)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
-    starts_at: Mapped[date | None] = mapped_column(Date, nullable=True)
-    ends_at: Mapped[date | None] = mapped_column(Date, nullable=True)
+    starts_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    flight_number: Mapped[str | None] = mapped_column(String, nullable=True)
+    airport: Mapped[str | None] = mapped_column(String, nullable=True)
     visibility: Mapped[str] = mapped_column(String, default="private")
     share_code: Mapped[str | None] = mapped_column(String, unique=True, nullable=True)
     event_categories: Mapped[list[str]] = mapped_column(JSON, default=lambda: DEFAULT_EVENT_CATEGORIES.copy())
