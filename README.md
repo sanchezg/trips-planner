@@ -71,3 +71,29 @@ npm install
 cp .env.example .env.local
 npm run dev
 ```
+
+## Backend tests
+
+### Test dependencies
+
+```bash
+cd backend
+pip install -r requirements-dev.txt
+```
+
+### Run tests
+
+The test suite uses `pytest`, `factory_boy`, mocked external services, and a dedicated PostgreSQL test database.
+By default it expects a local PostgreSQL database available at `localhost:5432` and creates a temporary test database named `trips_planner_test`.
+
+```bash
+cd backend
+pytest
+```
+
+To point tests at a different PostgreSQL instance:
+
+```bash
+cd backend
+TEST_DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/trips_planner_test pytest
+```

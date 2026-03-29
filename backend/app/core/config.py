@@ -1,4 +1,5 @@
 from typing import Any, Literal
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -33,13 +34,18 @@ class Settings(BaseSettings):
         if not isinstance(value, str):
             return value
 
-        if value.startswith("postgresql+psycopg://"):
-            return value
-        if value.startswith("postgres://"):
-            return "postgresql+psycopg://" + value.removeprefix("postgres://")
-        if value.startswith("postgresql://"):
-            return "postgresql+psycopg://" + value.removeprefix("postgresql://")
-        return value
+        normalized = value
+        if normalized.startswith("postgres://"):
+            normalized = "postgresql+psycopg://" + normalized.removeprefix("postgres://")
+        elif normalized.startswith("postgresql://"):
+            normalized = "postgresql+psycopg://" + normalized.removeprefix("postgresql://")
+
+        if normalized.startswith("postgresql+psycopg://"):
+            parts = urlsplit(normalized)
+            filtered_query = [item for item in parse_qsl(parts.query, keep_blank_values=True) if item[0] != "schema"]
+            normalized = urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(filtered_query), parts.fragment))
+
+        return normalized
 
     @staticmethod
     def _parse_csv_list(raw: str) -> list[str]:
