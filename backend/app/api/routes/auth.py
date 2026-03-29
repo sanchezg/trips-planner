@@ -5,7 +5,7 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.core.security import create_oauth_state, create_session_token, validate_oauth_state
+from app.core.security import create_oauth_state, create_session_token, read_oauth_state
 from app.dependencies.auth import get_current_user
 from app.dependencies.db import get_db
 from app.repositories.session_repository import create_user_session, revoke_session
@@ -14,6 +14,14 @@ from app.schemas.user import UserRead
 from app.services.auth.google_oauth import build_google_login_url, exchange_code_for_user
 
 router = APIRouter()
+
+
+def _sanitize_next_path(next_path: str | None) -> str | None:
+    if not next_path:
+        return None
+    if not next_path.startswith("/") or next_path.startswith("//"):
+        return None
+    return next_path
 
 
 def _build_login_redirect_with_error(error_code: str) -> RedirectResponse:
@@ -29,8 +37,9 @@ def _build_login_redirect_with_error(error_code: str) -> RedirectResponse:
 
 
 @router.get("/google/login")
-async def google_login() -> RedirectResponse:
-    state, cookie_value = create_oauth_state()
+async def google_login(next: str | None = None) -> RedirectResponse:
+    safe_next = _sanitize_next_path(next)
+    state, cookie_value = create_oauth_state(safe_next)
     response = RedirectResponse(build_google_login_url(state))
     response.set_cookie(
         settings.oauth_state_cookie_name,
@@ -51,7 +60,8 @@ async def google_callback(
     oauth_state_cookie: str | None = Cookie(default=None, alias=settings.oauth_state_cookie_name),
     db: Session = Depends(get_db),
 ) -> RedirectResponse:
-    if not validate_oauth_state(oauth_state_cookie, state):
+    oauth_state = read_oauth_state(oauth_state_cookie, state)
+    if not oauth_state:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid OAuth state")
 
     payload = await exchange_code_for_user(code)
@@ -71,7 +81,8 @@ async def google_callback(
     )
     token = create_session_token()
     create_user_session(db, user=user, session_token=token)
-    response = RedirectResponse(settings.frontend_origin + "/dashboard")
+    redirect_path = _sanitize_next_path(oauth_state.get("next_path")) or "/dashboard"
+    response = RedirectResponse(settings.frontend_origin + redirect_path)
     response.set_cookie(
         settings.session_cookie_name,
         token,

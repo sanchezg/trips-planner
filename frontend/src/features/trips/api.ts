@@ -32,6 +32,26 @@ export type TripShareCode = {
   role: ShareableTripRole;
 };
 
+export function extractTripShareCode(input: string) {
+  const value = input.trim();
+  if (!value) {
+    return "";
+  }
+
+  try {
+    const parsed = new URL(value);
+    const segments = parsed.pathname.split("/").filter(Boolean);
+    const joinIndex = segments.findIndex((segment) => segment === "join");
+    if (joinIndex >= 0 && segments[joinIndex + 1]) {
+      return segments[joinIndex + 1].toUpperCase();
+    }
+  } catch {
+    // Treat non-URL input as a raw code.
+  }
+
+  return value.toUpperCase();
+}
+
 export async function listTrips() {
   return apiFetch<TripSummary[]>("/api/routes/trips");
 }
@@ -56,7 +76,7 @@ export async function createTrip(payload: TripCreateInput) {
 export async function joinTrip(code: string) {
   return apiFetch<TripSummary>("/api/routes/trips/join", {
     method: "POST",
-    body: JSON.stringify({ code })
+    body: JSON.stringify({ code: extractTripShareCode(code) })
   });
 }
 

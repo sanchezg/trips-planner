@@ -4,22 +4,35 @@ import { useState, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { createTripShareCode, type ShareableTripRole } from '@/features/trips/api';
 
+type ShareLinkMap = Partial<Record<ShareableTripRole, { code: string; url: string }>>;
+
+function buildShareUrl(code: string) {
+  if (typeof window === 'undefined') {
+    return `/join/${code}`;
+  }
+  return `${window.location.origin}/join/${code}`;
+}
+
 export function ShareTripButton({ tripId }: { tripId: string }) {
   const [isPending, startTransition] = useTransition();
-  const [shareCodes, setShareCodes] = useState<Partial<Record<ShareableTripRole, string>>>({});
+  const [shareLinks, setShareLinks] = useState<ShareLinkMap>({});
   const [message, setMessage] = useState<string | null>(null);
 
   function handleGenerate(role: ShareableTripRole) {
     startTransition(async () => {
       try {
         const response = await createTripShareCode(tripId, role);
-        setShareCodes((current) => ({
+        const shareUrl = buildShareUrl(response.share_code);
+        setShareLinks((current) => ({
           ...current,
-          [response.role]: response.share_code,
+          [response.role]: {
+            code: response.share_code,
+            url: shareUrl,
+          },
         }));
-        setMessage(`Share the ${response.role} code with the person you want to invite.`);
+        setMessage(`Share the ${response.role} link or code with the person you want to invite.`);
       } catch (error) {
-        setMessage(error instanceof Error ? error.message : 'Unable to generate a share code.');
+        setMessage(error instanceof Error ? error.message : 'Unable to generate a share link.');
       }
     });
   }
@@ -34,8 +47,18 @@ export function ShareTripButton({ tripId }: { tripId: string }) {
           {isPending ? 'Generating...' : 'Share as viewer'}
         </Button>
       </div>
-      {shareCodes.editor ? <p className='text-xs font-semibold uppercase tracking-[0.18em] text-primary'>Editor code: {shareCodes.editor}</p> : null}
-      {shareCodes.viewer ? <p className='text-xs font-semibold uppercase tracking-[0.18em] text-primary'>Viewer code: {shareCodes.viewer}</p> : null}
+      {shareLinks.editor ? (
+        <div className='space-y-1 text-xs text-muted-foreground'>
+          <p className='font-semibold uppercase tracking-[0.18em] text-primary'>Editor code: {shareLinks.editor.code}</p>
+          <p className='break-all'>Editor link: {shareLinks.editor.url}</p>
+        </div>
+      ) : null}
+      {shareLinks.viewer ? (
+        <div className='space-y-1 text-xs text-muted-foreground'>
+          <p className='font-semibold uppercase tracking-[0.18em] text-primary'>Viewer code: {shareLinks.viewer.code}</p>
+          <p className='break-all'>Viewer link: {shareLinks.viewer.url}</p>
+        </div>
+      ) : null}
       {message ? <p className='text-xs text-muted-foreground'>{message}</p> : null}
     </div>
   );
